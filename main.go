@@ -1,6 +1,10 @@
 package main
 
-func main() {
+import (
+	"github.com/DonCuervoC/banking_go_api_hex/app" // Import app package
+)
 
-	Start()
+func main() {
+	// Call the Start function of the app package
+	app.Start()
 }
