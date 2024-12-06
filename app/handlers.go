@@ -1,14 +1,16 @@
 package app
 
 import (
-	"encoding/json"
-	"encoding/xml"
-	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func greet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello World")
+func greet(c *gin.Context) {
+	// Responder con un mensaje en formato JSON
+	c.JSON(200, gin.H{
+		"message": "Hello, welcome!",
+	})
 }
 
 type CustomerXML_JSON struct {
@@ -17,18 +19,20 @@ type CustomerXML_JSON struct {
 	ZipCode string `json:"zip_code" xml:"zip_code"`
 }
 
-func getAllCustomersXMLJSON(w http.ResponseWriter, r *http.Request) {
+func getAllCustomersXMLJSON(c *gin.Context) {
+	// Datos de ejemplo para los clientes
 	customers := []CustomerXML_JSON{
 		{Name: "Cristiano", City: "Madrid", ZipCode: "J5T78G"},
 		{Name: "Kylian", City: "Madrid", ZipCode: "4T86JT"},
 		{Name: "Iker", City: "Madrid", ZipCode: "J6759S"},
 	}
 
-	if r.Header.Get("Content-Type") == "application/xml" {
-		w.Header().Set("Content-Type", "application/xml")
-		xml.NewEncoder(w).Encode(customers)
+	// Verifica el tipo de contenido solicitado (XML o JSON)
+	if c.GetHeader("Content-Type") == "application/xml" {
+		// Responder con XML
+		c.XML(http.StatusOK, customers)
 	} else {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(customers)
+		// Responder con JSON
+		c.JSON(http.StatusOK, customers)
 	}
 }

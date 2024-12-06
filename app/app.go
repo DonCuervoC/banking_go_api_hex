@@ -2,15 +2,20 @@ package app
 
 import (
 	"log"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Start() {
-	//define routes
-	// Registrar la función handler para la ruta "/greet"
-	http.HandleFunc("/greet", greet)
-	http.HandleFunc("/customers", getAllCustomersXMLJSON)
+	// Crear una nueva instancia del router Gin
+	router := gin.Default()
 
-	//starting server on localhost:8000
-	log.Fatal(http.ListenAndServe("localhost:8000", nil))
+	// Definir las rutas
+	router.GET("/greet", greet)                      // Ruta para el saludo
+	router.GET("/customers", getAllCustomersXMLJSON) // Ruta para los clientes
+
+	// Iniciar el servidor en el puerto 8000
+	if err := router.Run("localhost:8000"); err != nil {
+		log.Fatal("Error starting server: ", err)
+	}
 }
