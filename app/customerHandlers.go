@@ -28,7 +28,9 @@ func (ch *CustomerHandlers) getAllCustomer(c *gin.Context) {
 	customers, err := ch.service.GetAllCustomer()
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err.Message)
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeResponse(c, http.StatusOK, customers)
 		return
 	}
 

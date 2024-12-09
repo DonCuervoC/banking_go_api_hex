@@ -22,6 +22,7 @@ type Customer struct {
 type ICustomerRepository interface {
 	// Este contrato garantiza que cualquier implementación (base de datos, APIs, etc.) tendrá esta función.
 
-	FindAll() ([]Customer, error) // Método para obtener todos los clientes
+	// FindAll() ([]Customer, error) // Método para obtener todos los clientes
+	FindAll() ([]Customer, *errs.AppError)
 	FindById(string) (*Customer, *errs.AppError)
 }
