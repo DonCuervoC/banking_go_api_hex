@@ -1,10 +1,14 @@
 package app
 
 import (
+	"fmt"
+	//"log"
 	"net/http"
+	"strconv"
 
 	//"strconv"
 
+	//"github.com/DonCuervoC/banking_go_api_hex/errs"
 	"github.com/DonCuervoC/banking_go_api_hex/service"
 	"github.com/gin-gonic/gin"
 )
@@ -28,41 +32,39 @@ func (ch *CustomerHandlers) getAllCustomer(c *gin.Context) {
 		return
 	}
 
-	// Determinamos el formato de la respuesta (XML o JSON) según el encabezado recibido.
-	if c.GetHeader("Content-Type") == "application/xml" {
-		// Responder con XML
-		c.XML(http.StatusOK, customers)
-	} else {
-		// Responder con JSON
-		c.JSON(http.StatusOK, customers)
-	}
+	writeResponse(c, http.StatusOK, customers)
 }
 
 func (ch *CustomerHandlers) getCustomer(c *gin.Context) {
 	// Obtenemos directamente el customer_id como string
 	Id := c.Param("customer_id")
-	// fmt.Println("getCustomer")
 
-	if Id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"}) // Retornamos un error 400 si el ID es inválido o vacío.
+	// Validamos si el ID es numérico
+	if _, err := strconv.Atoi(Id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID, must be a number"}) // Retornamos un error 400 si el ID no es un número.
 		return
 	}
 
 	// Llamamos al servicio con el Id (string)
 	customer, err := ch.service.GetCustomer(Id)
 
-	if err != nil || customer.Id == "" {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"}) // Retornamos un error 404 si no encontramos al usuario.
+	// Mejoramos la comprobación de error con la structura de error personalizada
+	if err != nil {
+		fmt.Println(err.Message)
+		//c.JSON(err.Code, gin.H{"error": err.Message}) // Error al obtener los datos.
+		writeResponse(c, err.Code, err.AsMessage())
 		return
 	}
+	writeResponse(c, http.StatusOK, customer)
+}
 
+func writeResponse(c *gin.Context, statusCode int, data interface{}) {
 	// Determinamos el formato de la respuesta (XML o JSON) según el encabezado recibido.
 	if c.GetHeader("Content-Type") == "application/xml" {
 		// Responder con XML
-		c.XML(http.StatusOK, customer)
+		c.XML(statusCode, data)
 	} else {
 		// Responder con JSON
-		c.JSON(http.StatusOK, customer)
+		c.JSON(statusCode, data)
 	}
-
 }

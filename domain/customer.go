@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/DonCuervoC/banking_go_api_hex/errs"
+
 //1. Domain object
 
 // Customer es la entidad principal que representa a un cliente en el sistema.
@@ -21,5 +23,5 @@ type ICustomerRepository interface {
 	// Este contrato garantiza que cualquier implementación (base de datos, APIs, etc.) tendrá esta función.
 
 	FindAll() ([]Customer, error) // Método para obtener todos los clientes
-	FindById(string) (*Customer, error)
+	FindById(string) (*Customer, *errs.AppError)
 }

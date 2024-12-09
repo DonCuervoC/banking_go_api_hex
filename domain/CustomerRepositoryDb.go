@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/DonCuervoC/banking_go_api_hex/errs"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -45,7 +46,7 @@ func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
 
 }
 
-func (d CustomerRepositoryDb) FindById(id string) (*Customer, error) {
+func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
 	querySql := `
         SELECT customer_id, name, city, zipcode, date_of_birth, status 
         FROM customers 
@@ -57,12 +58,19 @@ func (d CustomerRepositoryDb) FindById(id string) (*Customer, error) {
 	var c Customer
 	err := row.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
 	if err != nil {
+
 		if err == sql.ErrNoRows {
-			log.Println("No customer found with id:", id)
-			return nil, nil // No error, simplemente no hay datos.
+			// log.Println("No customer found with id:", id)
+			//return nil, nil // No error, simplemente no hay datos.
+			// return nil, errors.New("customer not found")
+			return nil, errs.NewNotFoundError("customer not found")
+		} else {
+			//log.Println("Error while scanning customer:", err.Error())
+			// return nil, errors.New("unexpected database error")
+			return nil, errs.NewUnexpectedError("unexpected db error")
+			// return nil, err
 		}
-		log.Println("Error while scanning customer:", err.Error())
-		return nil, err
+
 	}
 
 	return &c, nil
@@ -86,6 +94,7 @@ func NewCustomerRepositoryDb() CustomerRepositoryDb {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
+
 	}
 
 	if err := db.Ping(); err != nil {
