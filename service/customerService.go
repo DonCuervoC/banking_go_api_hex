@@ -9,7 +9,7 @@ import (
 // CustomerService define el contrato (puerto) de los servicios de cliente.
 type CustomerService interface {
 	// GetAllCustomer() ([]domain.Customer, error) // Método para obtener todos los clientes
-	GetAllCustomer() ([]domain.Customer, *errs.AppError)
+	GetAllCustomer(string) ([]domain.Customer, *errs.AppError)
 	GetCustomer(string) (*domain.Customer, *errs.AppError)
 }
 
@@ -21,8 +21,8 @@ type DefaultCustomerService struct {
 
 // GetAllCustomer llama al repositorio para obtener los clientes.
 // func (s DefaultCustomerService) GetAllCustomer() ([]domain.Customer, error) {
-func (s DefaultCustomerService) GetAllCustomer() ([]domain.Customer, *errs.AppError) {
-	return s.repo.FindAll()
+func (s DefaultCustomerService) GetAllCustomer(status string) ([]domain.Customer, *errs.AppError) {
+	return s.repo.FindAll(status)
 }
 
 // GetCustomer llama al repositorio para obtener a un solo cliente.

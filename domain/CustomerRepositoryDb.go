@@ -19,7 +19,7 @@ type CustomerRepositoryDb struct {
 }
 
 // func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
-func (d CustomerRepositoryDb) FindAll() ([]Customer, *errs.AppError) {
+func (d CustomerRepositoryDb) FindAll01() ([]Customer, *errs.AppError) {
 
 	findAllSql := `SELECT customer_id, name, city, zipcode, date_of_birth, status 
 					 FROM customers`
@@ -47,6 +47,53 @@ func (d CustomerRepositoryDb) FindAll() ([]Customer, *errs.AppError) {
 
 	return customers, nil
 
+}
+
+func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError) {
+	var findAllSql string
+
+	// Declaración de la variable rows fuera del switch para que sea accesible en todos los casos
+	var rows *sql.Rows
+	var err error
+
+	// Lógica para construir la consulta SQL dependiendo del estado
+	switch status {
+	case "active":
+		findAllSql = `SELECT customer_id, name, city, zipcode, date_of_birth, status 
+						FROM customers WHERE status = TRUE`
+		rows, err = d.client.Query(findAllSql)
+
+	case "inactive":
+		findAllSql = `SELECT customer_id, name, city, zipcode, date_of_birth, status 
+						FROM customers WHERE status = FALSE`
+		rows, err = d.client.Query(findAllSql)
+
+	default:
+		findAllSql = `SELECT customer_id, name, city, zipcode, date_of_birth, status 
+						FROM customers`
+		rows, err = d.client.Query(findAllSql)
+	}
+
+	// Comprobar si hubo un error al ejecutar la consulta SQL
+	if err != nil {
+		log.Println("Error while querying customer table: ", err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	// Procesar los resultados de la consulta
+	customers := make([]Customer, 0)
+	for rows.Next() {
+		var c Customer
+		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
+		if err != nil {
+			log.Println("Error while scanning customers: ", err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
+		customers = append(customers, c)
+	}
+
+	// Retornar los clientes obtenidos
+	return customers, nil
 }
 
 func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {

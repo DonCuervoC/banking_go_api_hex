@@ -23,6 +23,7 @@ type ICustomerRepository interface {
 	// Este contrato garantiza que cualquier implementación (base de datos, APIs, etc.) tendrá esta función.
 
 	// FindAll() ([]Customer, error) // Método para obtener todos los clientes
-	FindAll() ([]Customer, *errs.AppError)
+	//FindAll() ([]Customer, *errs.AppError)
+	FindAll(string) ([]Customer, *errs.AppError)
 	FindById(string) (*Customer, *errs.AppError)
 }

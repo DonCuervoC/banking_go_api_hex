@@ -23,14 +23,29 @@ type CustomerHandlers struct {
 // getAllCustomer maneja la solicitud GET para obtener todos los clientes.
 // Actúa como un "puerto de entrada" que conecta el mundo exterior (HTTP) con la lógica de negocio.
 func (ch *CustomerHandlers) getAllCustomer(c *gin.Context) {
-	// Llamamos al servicio para obtener la lista de clientes.
-	// El servicio se encarga de la lógica de negocio y de comunicarse con el repositorio.
-	customers, err := ch.service.GetAllCustomer()
+	// Obtener el query parameter `status`
+	status := c.Query("status") // Devuelve una cadena vacía si no se proporciona.
+
+	// Validar que el status no sea vacío y sea uno de los valores permitidos
+	if status != "" {
+		// Validar que el status sea "active" o "inactive"
+		if status != "active" && status != "inactive" {
+			// Si el status no es válido, respondemos con un error 400 (Bad Request)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid status. Allowed values are 'active' or 'inactive'.",
+			})
+			return
+		}
+	}
+
+	fmt.Println(status)
+
+	// Llamar al servicio y pasar el filtro de `status`
+	customers, err := ch.service.GetAllCustomer(status)
 
 	if err != nil {
 		fmt.Println(err.Message)
-		// c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		writeResponse(c, http.StatusOK, customers)
+		writeResponse(c, http.StatusInternalServerError, err.AsMessage())
 		return
 	}
 
