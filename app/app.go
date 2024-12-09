@@ -8,17 +8,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Start es la función principal que inicia el servidor y configura las rutas.
+// Aquí conectamos las diferentes partes de la aplicación (adaptadores primarios y secundarios).
 func Start() {
 
-	// Inicializa un enrutador de Gin
+	// Gin es un framework que nos permite manejar solicitudes HTTP (Adaptador Primario).
 	router := gin.Default()
 
+	//4.
 	// Inyección de dependencias:
-	// Creamos un repositorio simulado (adaptador derecho) y lo pasamos al servicio.
-	customerHandlers := CustomerHandlers{service: service.NewCustomerService(domain.NewCustomerRepositoryStub())}
+	// Creamos un "repositorio" (CustomerRepositoryStub), que es un adaptador secundario, y lo inyectamos en el servicio.
+	// Luego pasamos ese servicio al controlador (CustomerHandlers), que maneja las solicitudes HTTP.
+	ch := CustomerHandlers{service: service.NewCustomerService(domain.NewCustomerRepositoryDb())}
 
-	// Definimos una ruta GET para obtener todos los clientes.
-	router.GET("/customers", customerHandlers.getAllCustomer)
+	// Definimos una ruta HTTP GET para obtener todos los clientes.
+	// Esta ruta usa la función `getAllCustomer` del controlador `CustomerHandlers`.
+	router.GET("/customers", ch.getAllCustomer)
+	router.GET("/customer/:customer_id", ch.getCustomer)
 
 	if err := router.Run("localhost:8000"); err != nil {
 		log.Fatal("Error starting server: ", err)
