@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/DonCuervoC/banking_go_api_hex/errs"
+	"github.com/DonCuervoC/banking_go_api_hex/logger"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -27,8 +28,9 @@ func (d CustomerRepositoryDb) FindAll01() ([]Customer, *errs.AppError) {
 	rows, err := d.client.Query(findAllSql)
 
 	if err != nil {
-		log.Println("Error while querying customer table ", err.Error())
+		//log.Println("Error while querying customer table ", err.Error())
 		//return nil, err
+		logger.Error("Error while querying customer table " + err.Error())
 		return nil, errs.NewNotFoundError("customers not found")
 	}
 
@@ -76,7 +78,8 @@ func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError
 
 	// Comprobar si hubo un error al ejecutar la consulta SQL
 	if err != nil {
-		log.Println("Error while querying customer table: ", err.Error())
+		// log.Println("Error while querying customer table: ", err.Error())
+		logger.Error("Error while querying customer table: " + err.Error())
 		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
@@ -86,7 +89,8 @@ func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError
 		var c Customer
 		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
 		if err != nil {
-			log.Println("Error while scanning customers: ", err.Error())
+			// log.Println("Error while scanning customers: ", err.Error())
+			logger.Error("Error while scanning customers: " + err.Error())
 			return nil, errs.NewUnexpectedError("unexpected database error")
 		}
 		customers = append(customers, c)
@@ -149,6 +153,7 @@ func NewCustomerRepositoryDb() CustomerRepositoryDb {
 
 	if err := db.Ping(); err != nil {
 		log.Fatal("Error while connecting to the database: ", err)
+		// logger.Error("Error while connecting to the database: " + err)
 	}
 
 	db.SetConnMaxLifetime(time.Minute * 3)

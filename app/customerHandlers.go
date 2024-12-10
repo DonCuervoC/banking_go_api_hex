@@ -38,8 +38,6 @@ func (ch *CustomerHandlers) getAllCustomer(c *gin.Context) {
 		}
 	}
 
-	fmt.Println(status)
-
 	// Llamar al servicio y pasar el filtro de `status`
 	customers, err := ch.service.GetAllCustomer(status)
 

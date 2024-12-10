@@ -2,18 +2,35 @@ package app
 
 import (
 	"log"
+	"os"
 
 	"github.com/DonCuervoC/banking_go_api_hex/domain"
 	"github.com/DonCuervoC/banking_go_api_hex/service"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 // Start es la función principal que inicia el servidor y configura las rutas.
 // Aquí conectamos las diferentes partes de la aplicación (adaptadores primarios y secundarios).
 func Start() {
 
+	// Cargar variables desde .env
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, falling back to system environment variables.")
+	}
+
+	// Leer el modo de ejecución de la variable de entorno
+	mode := os.Getenv("GIN_MODE")
+	if mode == "" {
+		mode = gin.DebugMode // Por defecto, usa modo debug
+	}
+	gin.SetMode(mode)
+
 	// Gin es un framework que nos permite manejar solicitudes HTTP (Adaptador Primario).
 	router := gin.Default()
+	// Configurar proxies confiables (nil para confiar en todos en desarrollo)
+	//router.SetTrustedProxies(nil)
 
 	//4.
 	// Inyección de dependencias:
@@ -26,7 +43,10 @@ func Start() {
 	router.GET("/customers", ch.getAllCustomer)
 	router.GET("/customer/:customer_id", ch.getCustomer)
 
-	if err := router.Run("localhost:8000"); err != nil {
+	// Ejecutar el servidor
+	port := ":8000"
+	log.Printf("Starting server in %s mode on port %s...", gin.Mode(), port)
+	if err := router.Run(port); err != nil {
 		log.Fatal("Error starting server: ", err)
 	}
 }
