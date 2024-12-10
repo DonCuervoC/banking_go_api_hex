@@ -9,6 +9,7 @@ import (
 
 	"github.com/DonCuervoC/banking_go_api_hex/errs"
 	"github.com/DonCuervoC/banking_go_api_hex/logger"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -16,42 +17,10 @@ import (
 )
 
 type CustomerRepositoryDb struct {
-	client *sql.DB
+	client *sqlx.DB
 }
 
-// func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
-func (d CustomerRepositoryDb) FindAll01() ([]Customer, *errs.AppError) {
-
-	findAllSql := `SELECT customer_id, name, city, zipcode, date_of_birth, status 
-					 FROM customers`
-
-	rows, err := d.client.Query(findAllSql)
-
-	if err != nil {
-		//log.Println("Error while querying customer table ", err.Error())
-		//return nil, err
-		logger.Error("Error while querying customer table " + err.Error())
-		return nil, errs.NewNotFoundError("customers not found")
-	}
-
-	customers := make([]Customer, 0)
-	for rows.Next() {
-
-		var c Customer
-		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
-		if err != nil {
-			log.Println("Error while scanning customers ", err.Error())
-			//return nil, err
-			return nil, errs.NewUnexpectedError("unexpected db error")
-		}
-		customers = append(customers, c)
-	}
-
-	return customers, nil
-
-}
-
-func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError) {
+func (d CustomerRepositoryDb) FindAll01(status string) ([]Customer, *errs.AppError) {
 	var findAllSql string
 
 	// Declaración de la variable rows fuera del switch para que sea accesible en todos los casos
@@ -85,6 +54,7 @@ func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError
 
 	// Procesar los resultados de la consulta
 	customers := make([]Customer, 0)
+
 	for rows.Next() {
 		var c Customer
 		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
@@ -100,7 +70,48 @@ func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError
 	return customers, nil
 }
 
-func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
+func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError) {
+	var findAllSql string
+
+	// Declaración de la variable rows fuera del switch para que sea accesible en todos los casos
+	//var rows *sql.Rows
+	var err error
+	// Procesar los resultados de la consulta
+	customers := make([]Customer, 0)
+
+	// Lógica para construir la consulta SQL dependiendo del estado
+	switch status {
+	case "active":
+		findAllSql = `SELECT customer_id, name, city, zipcode, date_of_birth, status 
+						FROM customers WHERE status = TRUE`
+		// rows, err = d.client.Query(findAllSql)
+		err = d.client.Select(&customers, findAllSql)
+
+	case "inactive":
+		findAllSql = `SELECT customer_id, name, city, zipcode, date_of_birth, status 
+						FROM customers WHERE status = FALSE`
+		// rows, err = d.client.Query(findAllSql)
+		err = d.client.Select(&customers, findAllSql)
+
+	default:
+		findAllSql = `SELECT customer_id, name, city, zipcode, date_of_birth, status 
+						FROM customers`
+		// rows, err = d.client.Query(findAllSql)
+		err = d.client.Select(&customers, findAllSql)
+	}
+
+	// Comprobar si hubo un error al ejecutar la consulta SQL
+	if err != nil {
+		// log.Println("Error while querying customer table: ", err.Error())
+		logger.Error("Error while querying customer table: " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	// Retornar los clientes obtenidos
+	return customers, nil
+}
+
+func (d CustomerRepositoryDb) FindById01(id string) (*Customer, *errs.AppError) {
 	querySql := `
         SELECT customer_id, name, city, zipcode, date_of_birth, status 
         FROM customers 
@@ -130,6 +141,26 @@ func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
 	return &c, nil
 }
 
+func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
+	querySql := `
+        SELECT customer_id, name, city, zipcode, date_of_birth, status 
+        FROM customers 
+        WHERE customer_id = $1` // Usamos $1 como placeholder
+
+	var c Customer
+	err := d.client.Get(&c, querySql, id)
+
+	if err != nil {
+
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("customer not found")
+		} else {
+			return nil, errs.NewUnexpectedError("unexpected db error")
+		}
+	}
+	return &c, nil
+}
+
 func NewCustomerRepositoryDb() CustomerRepositoryDb {
 
 	err := godotenv.Load()
@@ -145,7 +176,7 @@ func NewCustomerRepositoryDb() CustomerRepositoryDb {
 		os.Getenv("DB_NAME"),
 		os.Getenv("DB_PASSWORD"))
 
-	db, err := sql.Open("postgres", connStr)
+	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
 

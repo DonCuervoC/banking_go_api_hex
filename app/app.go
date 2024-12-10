@@ -12,7 +12,6 @@ import (
 
 // Start es la función principal que inicia el servidor y configura las rutas.
 // Aquí conectamos las diferentes partes de la aplicación (adaptadores primarios y secundarios).
-
 func Start() {
 
 	// Cargar variables desde .env

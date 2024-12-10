@@ -7,13 +7,12 @@ import "github.com/DonCuervoC/banking_go_api_hex/errs"
 // Customer es la entidad principal que representa a un cliente en el sistema.
 // Esta estructura contiene los datos básicos de un cliente.
 type Customer struct {
-	Id          string
-	Name        string
-	City        string
-	ZipCode     string
-	DateOfBirth string
-	Status      string
-	//	Password    string
+	Id          string `db:"customer_id"`
+	Name        string `db:"name"`
+	City        string `db:"city"`
+	ZipCode     string `db:"zipcode"`
+	DateOfBirth string `db:"date_of_birth"`
+	Status      bool   `db:"status"`
 }
 
 // 1.1 introduce the contract
