@@ -1,6 +1,9 @@
 package domain
 
-import "github.com/DonCuervoC/banking_go_api_hex/errs"
+import (
+	"github.com/DonCuervoC/banking_go_api_hex/dto"
+	"github.com/DonCuervoC/banking_go_api_hex/errs"
+)
 
 //1. Domain object
 
@@ -13,6 +16,34 @@ type Customer struct {
 	ZipCode     string `db:"zipcode"`
 	DateOfBirth string `db:"date_of_birth"`
 	Status      bool   `db:"status"`
+}
+
+func (c Customer) statusAsString() string {
+	if c.Status {
+		return "active"
+	}
+	return "inactive"
+}
+
+func (c Customer) ToDto() dto.CustomerResponseDto {
+
+	return dto.CustomerResponseDto{
+		Id:          c.Id,
+		Name:        c.Name,
+		City:        c.City,
+		ZipCode:     c.ZipCode,
+		DateOfBirth: c.DateOfBirth,
+		Status:      c.statusAsString(),
+	}
+
+}
+
+func ToDtoList(customers []Customer) []dto.CustomerResponseDto {
+	var dtos []dto.CustomerResponseDto
+	for _, customer := range customers {
+		dtos = append(dtos, customer.ToDto())
+	}
+	return dtos
 }
 
 // 1.1 introduce the contract
