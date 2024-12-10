@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -10,15 +11,36 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// checkEnvVars valida que todas las variables de entorno requeridas estén definidas.
+func checkEnvVars(vars ...string) error {
+	for _, v := range vars {
+		if os.Getenv(v) == "" {
+			return fmt.Errorf("environment variable %s is not defined", v)
+		}
+	}
+	return nil
+}
+
+// loadEnv carga el archivo .env (si existe) y valida las variables requeridas.
+func loadEnv() error {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, falling back to system environment variables.")
+	}
+	// Variables requeridas
+	requiredVars := []string{"SERVER_ADDRESS", "SERVER_PORT"}
+	return checkEnvVars(requiredVars...)
+}
+
 // Start es la función principal que inicia el servidor y configura las rutas.
 // Aquí conectamos las diferentes partes de la aplicación (adaptadores primarios y secundarios).
 func Start() {
-
-	// Cargar variables desde .env
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("No .env file found, falling back to system environment variables.")
+	// Cargar y validar variables de entorno
+	if err := loadEnv(); err != nil {
+		log.Fatalf("Sanity check failed: %v", err)
 	}
+
+	// Continuar con la ejecución del programa
+	log.Println("Sanity check passed. Starting the application.")
 
 	// Leer el modo de ejecución de la variable de entorno
 	mode := os.Getenv("GIN_MODE")
@@ -51,7 +73,7 @@ func Start() {
 	router.GET("/customer/:customer_id", ch.getCustomer)
 
 	// Ejecutar el servidor
-	port := ":8000"
+	port := os.Getenv("SERVER_PORT")
 	log.Printf("Starting server in %s mode on port %s...", gin.Mode(), port)
 	if err := router.Run(port); err != nil {
 		log.Fatal("Error starting server: ", err)

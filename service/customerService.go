@@ -29,7 +29,6 @@ func (s DefaultCustomerService) GetAllCustomer(status string) ([]dto.CustomerRes
 		return nil, err
 	}
 
-	// customerDtos := domain.ToDtoList(customers)
 	customerDtos := domain.ToDtoList(customers)
 
 	return customerDtos, nil
