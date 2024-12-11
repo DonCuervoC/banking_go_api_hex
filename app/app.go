@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/DonCuervoC/banking_go_api_hex/domain"
 	"github.com/DonCuervoC/banking_go_api_hex/service"
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
 
@@ -61,16 +63,24 @@ func Start() {
 		router.SetTrustedProxies(nil)
 	}
 
+	dbClient := getDbClient()
+
 	//4.
 	// Inyección de dependencias:
 	// Creamos un "repositorio" (CustomerRepositoryStub), que es un adaptador secundario, y lo inyectamos en el servicio.
 	// Luego pasamos ese servicio al controlador (CustomerHandlers), que maneja las solicitudes HTTP.
-	ch := CustomerHandlers{service: service.NewCustomerService(domain.NewCustomerRepositoryDb())}
+	// CUSTOMERS
+	customerRepositoryDb := domain.NewCustomerRepositoryDb(dbClient)
+	ch := CustomerHandlers{service: service.NewCustomerService(customerRepositoryDb)}
+	//ACCOUNTS
+	accountRepositoryDb := domain.NewAccountRepositoryDb(dbClient)
+	ah := AccountHandlers{service: service.NewAccountService(accountRepositoryDb)}
 
 	// Definimos una ruta HTTP GET para obtener todos los clientes.
 	// Esta ruta usa la función `getAllCustomer` del controlador `CustomerHandlers`.
 	router.GET("/customers", ch.getAllCustomer)
 	router.GET("/customer/:customer_id", ch.getCustomer)
+	router.POST("/customer/:customer_id/account", ah.NewAccount)
 
 	// Ejecutar el servidor
 	port := os.Getenv("SERVER_PORT")
@@ -80,28 +90,55 @@ func Start() {
 	}
 }
 
-func Start01() {
-
-	// Gin es un framework que nos permite manejar solicitudes HTTP (Adaptador Primario).
-	router := gin.Default()
-	// Configurar proxies confiables (nil para confiar en todos en desarrollo)
-	//router.SetTrustedProxies(nil)
-
-	//4.
-	// Inyección de dependencias:
-	// Creamos un "repositorio" (CustomerRepositoryStub), que es un adaptador secundario, y lo inyectamos en el servicio.
-	// Luego pasamos ese servicio al controlador (CustomerHandlers), que maneja las solicitudes HTTP.
-	ch := CustomerHandlers{service: service.NewCustomerService(domain.NewCustomerRepositoryDb())}
-
-	// Definimos una ruta HTTP GET para obtener todos los clientes.
-	// Esta ruta usa la función `getAllCustomer` del controlador `CustomerHandlers`.
-	router.GET("/customers", ch.getAllCustomer)
-	router.GET("/customer/:customer_id", ch.getCustomer)
-
-	// Ejecutar el servidor
-	port := ":8000"
-	log.Printf("Starting server in %s mode on port %s...", gin.Mode(), port)
-	if err := router.Run(port); err != nil {
-		log.Fatal("Error starting server: ", err)
+func getDbClient() *sqlx.DB {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
 	}
+	// Configuración de la conexión con PostgreSQL
+	connStr := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PASSWORD"))
+	db, err := sqlx.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := db.Ping(); err != nil {
+		log.Fatal("Error while connecting to the database: ", err)
+		// logger.Error("Error while connecting to the database: " + err)
+	}
+	db.SetConnMaxLifetime(time.Minute * 3)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+
+	return db
 }
+
+// func Start01() {
+
+// 	// Gin es un framework que nos permite manejar solicitudes HTTP (Adaptador Primario).
+// 	router := gin.Default()
+// 	// Configurar proxies confiables (nil para confiar en todos en desarrollo)
+// 	//router.SetTrustedProxies(nil)
+
+// 	//4.
+// 	// Inyección de dependencias:
+// 	// Creamos un "repositorio" (CustomerRepositoryStub), que es un adaptador secundario, y lo inyectamos en el servicio.
+// 	// Luego pasamos ese servicio al controlador (CustomerHandlers), que maneja las solicitudes HTTP.
+// 	ch := CustomerHandlers{service: service.NewCustomerService(domain.NewCustomerRepositoryDb())}
+
+// 	// Definimos una ruta HTTP GET para obtener todos los clientes.
+// 	// Esta ruta usa la función `getAllCustomer` del controlador `CustomerHandlers`.
+// 	router.GET("/customers", ch.getAllCustomer)
+// 	router.GET("/customer/:customer_id", ch.getCustomer)
+
+// 	// Ejecutar el servidor
+// 	port := ":8000"
+// 	log.Printf("Starting server in %s mode on port %s...", gin.Mode(), port)
+// 	if err := router.Run(port); err != nil {
+// 		log.Fatal("Error starting server: ", err)
+// 	}
+// }
