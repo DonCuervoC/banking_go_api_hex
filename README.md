@@ -3,17 +3,17 @@ This project is a Go-based API for managing bank accounts, enabling users to per
 
 # Key features:
 
-**SOLID Principles:** Clean, structured code following best design practices.  
+**- SOLID Principles:** Clean, structured code following best design practices.  
 
-**Authentication & Authorization:** JWT-based authentication (access and refresh tokens) with role-based access control (RBAC).  
+**- Authentication & Authorization:** JWT-based authentication (access and refresh tokens) with role-based access control (RBAC).  
 
-**Modular Architecture:** Separation of domain objects and DTOs, applying dependency injection for a decoupled design.  
+**- Modular Architecture:** Separation of domain objects and DTOs, applying dependency injection for a decoupled design.  
 
-**Testing:** Use of mocks and state-based testing to ensure the reliability of the system.  
+**- Testing:** Use of mocks and state-based testing to ensure the reliability of the system.  
 
-**Routing & Error Handling:** Advanced routing with Gin-Gonic and a custom error handling library design.  
+**- Routing & Error Handling:** Advanced routing with Gin-Gonic and a custom error handling library design.  
 
-**Refactoring & Structured Logging:** Continuous code improvement and structured logging for efficient monitoring and debugging.  
+**- Refactoring & Structured Logging:** Continuous code improvement and structured logging for efficient monitoring and debugging.  
 
 This project also includes features such as encoding structs to JSON or XML, microservices design, and informed library choices, offering a robust and scalable solution for managing bank accounts.
 
