@@ -19,6 +19,6 @@ This project also includes features such as encoding structs to JSON or XML, mic
 
 > **Note:** This project is still under development.
 
-![CSS3](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)  
-![CSS3](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)  
+![CSS3](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
+![CSS3](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![CSS3](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
