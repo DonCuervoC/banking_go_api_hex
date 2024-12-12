@@ -82,6 +82,8 @@ func Start() {
 	router.GET("/customer/:customer_id", ch.getCustomer)
 	router.POST("/customer/:customer_id/account", ah.NewAccount)
 
+	router.POST("/customers/:customer_id/account/:account_id", ah.MakeTransaction)
+
 	// Ejecutar el servidor
 	port := os.Getenv("SERVER_PORT")
 	log.Printf("Starting server in %s mode on port %s...", gin.Mode(), port)

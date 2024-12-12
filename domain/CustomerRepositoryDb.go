@@ -81,6 +81,25 @@ func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
 	return &c, nil
 }
 
+func (d CustomerRepositoryDb) CustomerExists(id string) (bool, *errs.AppError) {
+	querySql := `
+        SELECT COUNT(*) 
+        FROM customers 
+        WHERE customer_id = $1;
+    `
+
+	var count int
+	err := d.client.Get(&count, querySql, id)
+
+	if err != nil {
+		logger.Error("Error while checking if customer exists: " + err.Error())
+		return false, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	// Si el conteo es mayor a 0, el cliente existe
+	return count > 0, nil
+}
+
 func NewCustomerRepositoryDb(dbClient *sqlx.DB) CustomerRepositoryDb {
 	return CustomerRepositoryDb{dbClient}
 }

@@ -50,3 +50,39 @@ func (h AccountHandlers) NewAccount(c *gin.Context) {
 	// Respuesta exitosa
 	writeResponse(c, http.StatusCreated, account)
 }
+
+// /customers/2000/accounts/90720
+func (h AccountHandlers) MakeTransaction(c *gin.Context) {
+
+	// Obtener el customer_id de la URL
+	customerId := c.Param("customer_id")
+	account_id := c.Param("account_id")
+	if customerId == "" || account_id == "" {
+		writeResponse(c, http.StatusBadRequest, "Customer ID or account ID required")
+		return
+	}
+
+	var request dto.TransactionRequestDto
+
+	request.AccountId = account_id
+	request.CustomerId = customerId
+
+	// Leer el body crudo
+	body, err := c.GetRawData()
+	// Decodificar el JSON del body al DTO
+	err = json.NewDecoder(bytes.NewReader(body)).Decode(&request)
+	if err != nil {
+		writeResponse(c, http.StatusBadRequest, "Invalid JSON format: "+err.Error())
+		return
+	}
+
+	// make transaction
+	account, appError := h.service.MakeTransaction(request)
+
+	if appError != nil {
+		writeResponse(c, appError.Code, appError.AsMessage())
+	} else {
+		writeResponse(c, http.StatusOK, account)
+	}
+
+}
