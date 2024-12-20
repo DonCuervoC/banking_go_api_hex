@@ -69,6 +69,12 @@ func (h AccountHandlers) MakeTransaction(c *gin.Context) {
 
 	// Leer el body crudo
 	body, err := c.GetRawData()
+
+	if err != nil {
+		writeResponse(c, http.StatusBadRequest, "Unable to read request body")
+		return
+	}
+
 	// Decodificar el JSON del body al DTO
 	err = json.NewDecoder(bytes.NewReader(body)).Decode(&request)
 	if err != nil {

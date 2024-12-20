@@ -69,6 +69,10 @@ func (s DefaultAuthService) Refresh(request dto.RefreshTokenRequest) (*dto.Login
 }
 
 func (s DefaultAuthService) Verify(urlParams map[string]string) *errs.AppError {
+
+	// log.Printf("04.1 Auth service Verify ****************************************")
+	// log.Printf("urlParams: %s", urlParams)
+
 	// convert the string token to JWT struct
 	if jwtToken, err := jwtTokenFromString(urlParams["token"]); err != nil {
 		return errs.NewAuthorizationError(err.Error())

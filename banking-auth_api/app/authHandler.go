@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/DonCuervoC/banking_go_api_hex/dto"
@@ -48,6 +49,11 @@ func (h AuthHandler) Login(c *gin.Context) {
 func (h AuthHandler) Verify(c *gin.Context) {
 	// Obtener el parámetro 'token' de la Query
 	token := c.Query("token")
+	routeName := c.Query("routeName")
+
+	log.Printf("01 Auth Handler Verify ****************************************")
+	log.Printf("token: %s", token)
+	log.Printf("routeName: %s", routeName)
 
 	if token == "" {
 		// Si el token no existe, devolver un 403 Forbidden
@@ -55,13 +61,29 @@ func (h AuthHandler) Verify(c *gin.Context) {
 		return
 	}
 
-	// Crear un mapa con los parámetros necesarios
-	urlParams := map[string]string{
-		"token": token,
+	if routeName == "" {
+		// Si el token no existe, devolver un 403 Forbidden
+		writeResponse(c, http.StatusForbidden, notAuthorizedResponse("missing route name"))
+		return
 	}
 
+	log.Printf("02 Auth Handler Verify ****************************************")
+	log.Printf("checking for existing token...")
+
+	// Crear un mapa con los parámetros necesarios
+	urlParams := map[string]string{
+		"token":     token,
+		"routeName": routeName,
+	}
+
+	log.Printf("03 Auth Handler Verify ****************************************")
+	log.Printf("url params : %s", urlParams)
+
 	// Llamar al servicio para verificar el token
+	log.Printf("04 Auth Handler Verify ****************************************")
+	log.Printf("Calling to service...")
 	appErr := h.service.Verify(urlParams)
+
 	if appErr != nil {
 		// Si hay un error, devolver una respuesta de no autorizado
 		writeResponse(c, appErr.Code, notAuthorizedResponse(appErr.Message))

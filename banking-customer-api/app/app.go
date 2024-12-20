@@ -81,14 +81,31 @@ func Start() {
 
 	// Definimos una ruta HTTP GET para obtener todos los clientes.
 	// Esta ruta usa la función `getAllCustomer` del controlador `CustomerHandlers`.
-	router.GET("/customers", ch.getAllCustomer)
-	router.GET("/customer/:customer_id", ch.getCustomer)
-	router.POST("/customer/:customer_id/account", ah.NewAccount)
-	router.POST("/customers/:customer_id/account/:account_id", ah.MakeTransaction)
+	// router.GET("/customers", ch.getAllCustomer).name("GetAllCustomers")
 
-	//router.POST("/auth/login", ah.MakeTransaction)
-	//router.POST("/auth/register", ah.MakeTransaction)
-	//router.POST("/auth/verify", ah.MakeTransaction)
+	// Aquí integramos el middleware y pasamos el nombre de la ruta
+	am := AuthMiddleware{domain.NewAuthRepository()}
+
+	router.GET("/customers", am.NamedRoute("GetAllCustomers", ch.getAllCustomer))
+	router.GET("/customer/:customer_id", am.NamedRoute("GetCustomer", ch.getCustomer))
+	router.POST("/customer/:customer_id/account", am.NamedRoute("NewAccount", ah.NewAccount))
+	router.POST("/customers/:customer_id/account/:account_id", am.NamedRoute("NewTransaction", ah.MakeTransaction))
+
+	// router.GET("/customers", ch.getAllCustomer)
+	// router.GET("/customer/:customer_id", ch.getCustomer)
+	// router.POST("/customer/:customer_id/account", ah.NewAccount)
+	// router.POST("/customers/:customer_id/account/:account_id", ah.MakeTransaction)
+
+	router.Use(func(c *gin.Context) {
+		// Before
+		fmt.Println("Executing Before Middleware Logic")
+
+		// Llama al siguiente middleware o handler
+		c.Next()
+
+		// After
+		fmt.Println("Executing After Middleware Logic")
+	})
 
 	// Ejecutar el servidor
 	port := os.Getenv("SERVER_PORT")

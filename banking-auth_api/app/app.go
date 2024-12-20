@@ -66,10 +66,14 @@ func Start() {
 	authRepository := domain.NewAuthRepository(dbClient)
 	auH := AuthHandler{service.NewLoginService(authRepository, domain.GetRolePermissions())}
 
+	log.Printf("Getting router ready ...")
 	// Definimos una ruta HTTP GET para obtener todos los clientes.
+	log.Printf("Route login ...")
 	router.POST("/auth/login", auH.Login)
 	//router.POST("/auth/register", auH.Register)
-	router.POST("/auth/verify", auH.Verify)
+	log.Printf("Route Verify ...")
+	router.GET("/auth/verify", auH.Verify)
+	log.Printf("Route Refresh token ...")
 	router.POST("/auth/refresh", auH.Refresh)
 
 	// Ejecutar el servidor
